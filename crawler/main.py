@@ -3,6 +3,8 @@ import argparse
 from urllib.parse import urlparse
 from io import UnsupportedOperation
 import os
+from crawler import crawler
+import db
 
 
 limit = 30
@@ -54,6 +56,7 @@ def parse_args() -> []:
 
 def init_crawl(urls):
     """Initialises the crawler and feeds it the root url(s)"""
+    crawler(urls)
 
 
 def init_log():
@@ -65,6 +68,9 @@ def init_log():
 
 def init_db(urls):
     """Initialises the database with the root url(s)"""
+    db.init_db()
+    db.insert_link(urls)
+
 
 
 def is_valid_url(url):
