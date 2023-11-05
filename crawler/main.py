@@ -6,7 +6,6 @@ import os
 from crawler import crawler
 import db
 
-
 limit = 30
 
 
@@ -70,7 +69,6 @@ def init_db(urls):
     """Initialises the database with the root url(s)"""
     db.init_db()
     db.insert_link(urls)
-
 
 
 def is_valid_url(url):
