@@ -1,6 +1,7 @@
 import requests
 import socket
 import re
+import requests_random_user_agent
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
@@ -38,7 +39,7 @@ def crawler(url):
                 geolocation_response_json = geolocation_response.json()
                 geolocation = geolocation_response_json['countryCode']
 
-                return response_time, ip_addr, geolocation, urls_set
+                return url, response_time, ip_addr, geolocation, urls_set
     except Exception as e:
         # Some function to log error
         print(str(e))
