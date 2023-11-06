@@ -1,13 +1,15 @@
-import requests
-import socket
+import logging
 import re
 import requests_random_user_agent
+import socket
 from urllib.parse import urlparse
+
+import requests
 from bs4 import BeautifulSoup
+
 
 def crawler(url):
     urls_set = set()
-
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -42,4 +44,4 @@ def crawler(url):
                 return url, response_time, ip_addr, geolocation, urls_set
     except Exception as e:
         # Some function to log error
-        print(str(e))
+        logging.exception(f"Error occured: {e}")

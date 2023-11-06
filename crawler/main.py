@@ -1,9 +1,12 @@
-import logging
 import argparse
-from urllib.parse import urlparse
-from io import UnsupportedOperation
+import logging
 import os
+import sqlite3
+from io import UnsupportedOperation
+from urllib.parse import urlparse
 
+import db
+from crawler import crawler
 
 limit = 30
 
@@ -11,8 +14,18 @@ limit = 30
 def main():
     init_log()
     seed_urls = parse_args()
-    init_db(seed_urls)
-    init_crawl(seed_urls)
+    con = sqlite3.connect("database.db")
+    cur = con.cursor()
+    db.init_db(cur)
+
+    # 2. insert new link
+    for url in seed_urls:
+        db.insert_link(con, cur, url)
+    response_time, ip_addr, geolocation, urls_set = init_crawl(db.get_link(con, cur))
+    for _ in range(len(urls_set)):
+        db.insert_link(con, cur, urls_set.pop())
+    db.update_link(con, cur, seed_urls[0], response_time, ip_addr, None)
+    db.print_db(cur)
 
 
 def parse_args() -> []:
@@ -54,6 +67,7 @@ def parse_args() -> []:
 
 def init_crawl(urls):
     """Initialises the crawler and feeds it the root url(s)"""
+    return crawler(urls)
 
 
 def init_log():
@@ -61,10 +75,6 @@ def init_log():
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S'
                         )
-
-
-def init_db(urls):
-    """Initialises the database with the root url(s)"""
 
 
 def is_valid_url(url):
