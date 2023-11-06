@@ -1,9 +1,11 @@
 import sqlite3
 
 # initializes the database, creating tables and deleting all previous records
-def init_db(cursor: sqlite3.Cursor) -> (sqlite3.Connection, sqlite3.Cursor):
-    cursor.execute("CREATE TABLE IF NOT EXISTS websites(link, isVisited, responseTime, ipAddress, htmlData)")
+def init_db(cursor: sqlite3.Cursor, connection: sqlite3.Connection) -> None:
+    cursor.execute("DROP TABLE IF EXISTS websites")
+    cursor.execute("CREATE TABLE websites(link, isVisited, responseTime, ipAddress, geolocation, htmlData)")
     cursor.execute("DELETE FROM websites")
+    con.commit()
 
 # inserts a new link into the database
 def insert_link(con: sqlite3.Connection, cursor: sqlite3.Cursor, link: str) -> None:
@@ -32,12 +34,12 @@ def get_link(con: sqlite3.Connection, cursor: sqlite3.Cursor) -> str:
     return res
 
 # updates the input link with params retrieved from crawler
-def update_link(con: sqlite3.Connection, cursor: sqlite3.Cursor, link: str, responseTime: float, ipAddress: str, htmlData: str) -> None:
+def update_link(con: sqlite3.Connection, cursor: sqlite3.Cursor, link: str, responseTime: float, ipAddress: str, geolocation: str, htmlData: str) -> None:
     cursor.execute("""
         UPDATE websites
-        SET responseTime = (?), ipAddress = (?), htmlData = (?)
+        SET responseTime = (?), ipAddress = (?), geolocation = (?), htmlData = (?)
         WHERE link=(?)
-        """, (responseTime, ipAddress, htmlData, link))
+        """, (responseTime, ipAddress, geolocation, htmlData, link))
     con.commit()
     
 # prints the db
