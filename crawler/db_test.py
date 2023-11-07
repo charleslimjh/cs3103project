@@ -26,9 +26,20 @@ db.print_db()
 
 # 3. extract link to visit
 newLink = db.get_link()
-db.print_db()
-print(newLink)
+print("Link:", newLink)
+newLink = db.get_link()
+print("Link:", newLink)
 
 # 4. update link params
-db.update_link(newLink, 0.500, "192.168.10.1", "insert some data here")
+db.update_link(newLink, 0.500, "192.168.10.1", "geolocation")
 db.print_db()
+
+# 5. update keyword params
+db.insert_keyword("Ball", "Asia")
+db.insert_keyword("Ball", "Asia")
+db.insert_keyword("Ball", "NA")
+db.insert_keyword("Not ball", "NA")
+db.insert_keyword("Not ball", "SA")
+db.print_db()
+res = db.get_keywords()
+print(res)
