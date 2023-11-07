@@ -1,5 +1,6 @@
 import sqlite3
 
+
 # initializes the database, creating tables and deleting all previous records
 def init_cursorcon() -> None:
     global con, cursor
@@ -26,7 +27,6 @@ def insert_link(link: str) -> bool:
     except sqlite3.IntegrityError:
         return False
 
-
 # retrieves an unvisited link from the database
 # if no link exists, returns an empty string
 def get_link() -> str:
@@ -51,6 +51,7 @@ def get_link() -> str:
 
         return res
 
+
 # updates the input link with params retrieved from crawler
 def update_link(link: str, responseTime: float, ipAddress: str, geolocation: str) -> None:
     cursor.execute("""
@@ -67,7 +68,8 @@ def insert_keyword(keyword:str, continent:str) -> None:
         VALUES (?, ?)
         """, (keyword, continent))
     con.commit()
-    
+
+
 # prints the db
 def print_db() -> None:
     print("-" * 20)

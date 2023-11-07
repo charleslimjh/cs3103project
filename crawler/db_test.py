@@ -1,5 +1,6 @@
 # 1. initialize the db
 import sqlite3
+
 import db
 db.init_cursorcon()
 from db import cursor, con
