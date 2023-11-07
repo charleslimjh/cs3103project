@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-import sqlite3
 import time
 from io import UnsupportedOperation
 from urllib.parse import urlparse
@@ -21,19 +20,19 @@ def main():
     init_log()
     parse_args()
 
-    con = sqlite3.connect("database.db")
-    cur = con.cursor()
-    db.init_db(cur)
+    db.init_cursorcon()
+    db.init_db()
 
     # Add initial urls
     for url in seed_urls:
-        db.insert_link(con, cur, url)
+        db.insert_link(url)
 
     # Remove this line and update straight to database depending on geolocation
     keywords_count_global = [0] * len(keywords)
     
     while True:
-        link = db.get_link(con, cur)
+        link = db.get_link()
+        logging.info(f"Number of url left to crawl: {limit}")
         if link is None or limit == 0:
             print('Yes')
             break
@@ -41,9 +40,9 @@ def main():
         url, response_time, ip_addr, geolocation_continent, geolocation_country, urls_set, keywords_count = crawler(link, keywords)
         for _ in range(len(urls_set)):
             # Add new links found in the current page to the database
-            db.insert_link(con, cur, urls_set.pop())
+            db.insert_link(urls_set.pop())
         # Update current link as visited
-        db.update_link(con, cur, url, response_time, ip_addr, None)
+        db.update_link(url, response_time, ip_addr, geolocation_continent)
         for idx, keyword_count in enumerate(keywords_count):
             # Remove this line and update straight to database depending on geolocation
             keywords_count_global[idx] += keyword_count
