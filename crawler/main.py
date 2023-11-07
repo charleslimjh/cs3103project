@@ -9,56 +9,73 @@ from urllib.parse import urlparse
 import db
 from crawler import crawler
 
+# global vars
 limit = 30
+seed_urls = set()
+keywords = set()
 
 
 def main():
+    """Main driver of program, handles initiation of all helpers and running of crawlers"""
+    global limit
     init_log()
-    seed_urls = parse_args()
+    parse_args()
+
     con = sqlite3.connect("database.db")
     cur = con.cursor()
     db.init_db(cur)
 
-    # 2. insert new link
+    # Add initial urls
     for url in seed_urls:
         db.insert_link(con, cur, url)
-    keywords = ['tennis', 'badminton']
+
+    # Update this line  
     keywords_count_global = [{'keyword': 'tennis', 'count': 0}, {'keyword': 'badminton', 'count': 0}]
-    for _ in range(300):
-        url, response_time, ip_addr, geolocation, urls_set, keywords_count = init_crawl(db.get_link(con, cur), keywords)
+    
+    while True:
+        link = db.get_link(con, cur)
+        if link is None or limit == 0:
+            break
+        limit -= 1
+        url, response_time, ip_addr, geolocation, urls_set, keywords_count = crawler(link, keywords)
         for _ in range(len(urls_set)):
             db.insert_link(con, cur, urls_set.pop())
         db.update_link(con, cur, url, response_time, ip_addr, None)
         for idx, keyword_count in enumerate(keywords_count):
             keywords_count_global[idx]['count'] += keyword_count['count']
-        #db.print_db(cur)
+        db.print_db(cur)
         print(keywords_count_global)
         time.sleep(0.5)
-
 
 def parse_args() -> []:
     """Takes in the command line arguments and finds the root url(s) from the seed file given"""
     parser = argparse.ArgumentParser(prog="Web crawler",
                                      description="Multi-threaded web crawler that generates statistics from keyword "
                                                  "matching of multiple websites")
-    parser.add_argument("filename", help="absolute path of file containing seed url")
-    parser.add_argument("limit", help="number of urls to be found by crawler (not including seed url)", default=30)
+    parser.add_argument("url_file", help="Path of file containing seed url")
+    parser.add_argument("keyword_file", help="Path of file containing keywords to search websites for")
+    parser.add_argument("-l", help="Number of urls to be found by crawler (not including seed url)", required=False,
+                        default=30)
     args = parser.parse_args()
     logging.info(f"program started with arguments provided: {args}")
-    filename = os.path.abspath(args.filename)
-    urls = []
+    seed_file = os.path.abspath(args.url_file)
+    keyword_file = os.path.abspath(args.keyword_file)
     global limit
-    limit = args.limit
+    limit = args.l
     try:
-        f = open(filename, "r")
+        f = open(seed_file, "r")
         for line in f:
             if is_valid_url(line):
-                urls.append(line)
+                seed_urls.add(line)
                 logging.info(f"Url added: {line}")
             else:
                 raise ValueError
-        logging.info(f"All urls successfully added: {urls} ")
-        return urls
+        logging.info(f"All urls successfully added: {seed_urls} ")
+        f = open(keyword_file, "r")
+        for line in f:
+            keywords.add(line)
+            logging.info(f"Keyword added: {line}")
+        logging.info(f"All keywords successfully added: {keywords}")
     except FileNotFoundError:
         logging.exception("The file does not exist.")
     except PermissionError:
@@ -71,12 +88,6 @@ def parse_args() -> []:
         logging.exception(f"An error occurred: {e}")
     except ValueError as e:
         logging.exception(f"Url not valid: {line}")
-
-
-def init_crawl(urls, keywords):
-    """Initialises the crawler and feeds it the root url(s)"""
-    return crawler(urls, keywords)
-
 
 def init_log():
     """Initialises the logger"""
