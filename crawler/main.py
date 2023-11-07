@@ -26,15 +26,11 @@ def main():
     # Add initial urls
     for url in seed_urls:
         db.insert_link(url)
-
-    # Remove this line and update straight to database depending on geolocation
-    keywords_count_global = [0] * len(keywords)
     
     while True:
         link = db.get_link()
         logging.info(f"Number of url left to crawl: {limit}")
         if link is None or limit == 0:
-            print('Yes')
             break
         limit -= 1
         url, response_time, ip_addr, geolocation_continent, geolocation_country, urls_set, keywords_count = crawler(link, keywords)
@@ -42,14 +38,15 @@ def main():
             # Add new links found in the current page to the database
             db.insert_link(urls_set.pop())
         # Update current link as visited
-        db.update_link(url, response_time, ip_addr, geolocation_continent)
-        for idx, keyword_count in enumerate(keywords_count):
-            # Remove this line and update straight to database depending on geolocation
-            keywords_count_global[idx] += keyword_count
+        db.update_link(url, response_time, ip_addr, geolocation_country)
+        # Insert predefined keywords found into database
+        for keyword_count in keywords_count:
+            for _ in range(keyword_count['count']):
+                db.insert_keyword(keyword_count['keyword'], geolocation_continent)
         #db.print_db(cur)
-        print(keywords)
-        print(keywords_count_global)
+        print(db.get_keywords())
         time.sleep(1)
+
 
 def parse_args() -> []:
     """Takes in the command line arguments and finds the root url(s) from the seed file given"""
@@ -69,6 +66,8 @@ def parse_args() -> []:
     try:
         f = open(seed_file, "r")
         for line in f:
+            # Remove newline character
+            line = line.replace("\n", "")
             if is_valid_url(line):
                 seed_urls.add(line)
                 logging.info(f"Url added: {line}")
@@ -94,6 +93,7 @@ def parse_args() -> []:
         logging.exception(f"An error occurred: {e}")
     except ValueError as e:
         logging.exception(f"Url not valid: {line}")
+
 
 def init_log():
     """Initialises the logger"""

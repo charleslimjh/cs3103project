@@ -88,7 +88,7 @@ def crawler(url, keywords):
             geolocation_response.raise_for_status()
 
             for keyword in keywords:
-                keywords_count.append(soup.text.lower().count(keyword.lower()))
+                keywords_count.append({'keyword': keyword, 'count': soup.text.lower().count(keyword.lower())})
 
             if geolocation_response.status_code == 200:
                 geolocation_response_json = geolocation_response.json()
