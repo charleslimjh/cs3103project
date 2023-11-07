@@ -29,23 +29,28 @@ def main():
     for url in seed_urls:
         db.insert_link(con, cur, url)
 
-    # Update this line  
-    keywords_count_global = [{'keyword': 'tennis', 'count': 0}, {'keyword': 'badminton', 'count': 0}]
+    # Remove this line and update straight to database depending on geolocation
+    keywords_count_global = [0] * len(keywords)
     
     while True:
         link = db.get_link(con, cur)
         if link is None or limit == 0:
+            print('Yes')
             break
         limit -= 1
-        url, response_time, ip_addr, geolocation, urls_set, keywords_count = crawler(link, keywords)
+        url, response_time, ip_addr, geolocation_continent, geolocation_country, urls_set, keywords_count = crawler(link, keywords)
         for _ in range(len(urls_set)):
+            # Add new links found in the current page to the database
             db.insert_link(con, cur, urls_set.pop())
+        # Update current link as visited
         db.update_link(con, cur, url, response_time, ip_addr, None)
         for idx, keyword_count in enumerate(keywords_count):
-            keywords_count_global[idx]['count'] += keyword_count['count']
-        db.print_db(cur)
+            # Remove this line and update straight to database depending on geolocation
+            keywords_count_global[idx] += keyword_count
+        #db.print_db(cur)
+        print(keywords)
         print(keywords_count_global)
-        time.sleep(0.5)
+        time.sleep(1)
 
 def parse_args() -> []:
     """Takes in the command line arguments and finds the root url(s) from the seed file given"""
@@ -61,7 +66,7 @@ def parse_args() -> []:
     seed_file = os.path.abspath(args.url_file)
     keyword_file = os.path.abspath(args.keyword_file)
     global limit
-    limit = args.l
+    limit = int(args.l)
     try:
         f = open(seed_file, "r")
         for line in f:
@@ -73,6 +78,8 @@ def parse_args() -> []:
         logging.info(f"All urls successfully added: {seed_urls} ")
         f = open(keyword_file, "r")
         for line in f:
+            # Remove newline character
+            line = line.replace("\n", "")
             keywords.add(line)
             logging.info(f"Keyword added: {line}")
         logging.info(f"All keywords successfully added: {keywords}")
