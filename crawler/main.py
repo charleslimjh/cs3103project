@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import sqlite3
+import time
 from io import UnsupportedOperation
 from urllib.parse import urlparse
 
@@ -21,11 +22,18 @@ def main():
     # 2. insert new link
     for url in seed_urls:
         db.insert_link(con, cur, url)
-    response_time, ip_addr, geolocation, urls_set = init_crawl(db.get_link(con, cur))
-    for _ in range(len(urls_set)):
-        db.insert_link(con, cur, urls_set.pop())
-    db.update_link(con, cur, seed_urls[0], response_time, ip_addr, None)
-    db.print_db(cur)
+    keywords = ['tennis', 'badminton']
+    keywords_count_global = [{'keyword': 'tennis', 'count': 0}, {'keyword': 'badminton', 'count': 0}]
+    for _ in range(300):
+        url, response_time, ip_addr, geolocation, urls_set, keywords_count = init_crawl(db.get_link(con, cur), keywords)
+        for _ in range(len(urls_set)):
+            db.insert_link(con, cur, urls_set.pop())
+        db.update_link(con, cur, url, response_time, ip_addr, None)
+        for idx, keyword_count in enumerate(keywords_count):
+            keywords_count_global[idx]['count'] += keyword_count['count']
+        #db.print_db(cur)
+        print(keywords_count_global)
+        time.sleep(0.5)
 
 
 def parse_args() -> []:
@@ -65,9 +73,9 @@ def parse_args() -> []:
         logging.exception(f"Url not valid: {line}")
 
 
-def init_crawl(urls):
+def init_crawl(urls, keywords):
     """Initialises the crawler and feeds it the root url(s)"""
-    return crawler(urls)
+    return crawler(urls, keywords)
 
 
 def init_log():
