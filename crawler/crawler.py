@@ -48,6 +48,10 @@ def crawler(url, keywords):
         response.raise_for_status()
         response_time = response.elapsed.total_seconds()
 
+        # Filter URLs from reddit
+        if domain == 'old.reddit.com' and 'over18' in response.url:
+            raise Exception(f"{url} is now filtered")
+
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -96,10 +100,10 @@ def crawler(url, keywords):
                 return url, response_time, ip_addr, geolocation_continent, geolocation_country, urls_set, keywords_count
     except requests.exceptions.HTTPError as e:
         logging.exception(f"Error fetching {url}: {e.response.status_code}")
-        return url, None, None, None, urls_set, []
+        return url, None, None, None, None, urls_set, []
     except requests.exceptions.RequestException as e:
-        logging.exception(f"Error requesting {url}: {e}")
-        return url, None, None, None, urls_set, []
+        logging.exception(f"Error connecting to {url}: {e}")
+        return url, None, None, None, None, urls_set, []
     except Exception as e:
         logging.exception(f"An error occured: {e}")
-        return url, None, None, None, urls_set, []
+        return url, None, None, None, None, urls_set, []
