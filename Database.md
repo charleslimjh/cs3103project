@@ -7,19 +7,16 @@
 
 ## Initializing the Database
 
-1. import sqlite3 and db in the crawler
+1. import db in main.py
 2. run db.init_cursorcon() to initialize the cursor and connection objects
-3. import the cursor and con object from db
-4. intialize the db using db.init_db()
+3. intialize the db using db.init_db()
 
-Copy the following 5 lines of code to the top of your crawler.py file:
+Copy the following 5 lines of code to the top of your main.py file:
 
 ```
-import sqlite3
 import db
 
 db.init_cursorcon()
-from db import cursor, con
 db.init_db()
 ```
 
