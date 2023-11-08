@@ -1,14 +1,18 @@
-# CS3103 Assignment 4 Crawler User Guide
+# CS3103 Assignment 4 Parallel Web Crawler User Guide
 
-### To compile and run the program use
-`python3 main.py url_file keyword_file [-l Number of urls per crawler process] [-n Number of processes]`
+### To install the requirements and run the web crawler
+```
+pip install -r requirements.txt
+cd crawler
+python3 main.py url_file keyword_file [-l Number of urls per crawler process] [-n Number of processes]
+```
 
 ---
-### To view/edit initial URLs
+### To view/edit list of initial URLs
 Visit or edit `url.txt`
 
 ---
-### To view/edit keywords
+### To view/edit list of keywords
 Visit or edit `keywords.txt`
 
 --- 
