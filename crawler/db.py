@@ -106,3 +106,13 @@ def get_keywords() -> dict:
 
     return res
 
+# get number of visited URLs in the DB
+def get_num_urls_visited() -> int:
+    cursor.execute("""
+        SELECT COUNT(*) FROM websites 
+        WHERE isVisited = True
+        """)
+    
+    res = cursor.fetchone()
+
+    return res[0]
