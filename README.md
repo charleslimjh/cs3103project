@@ -23,7 +23,7 @@ Open `database.db` using a SQLite DB reader
 --- 
 ### Required modules that are not imported
 Openpyxl is required for pandas to write an excel file.
-If you have not installed it previously by running
-```pip install -r requirements.txt```
-and you have all other requirements satifisfied, you can install it separately by opening up your terminal or command prompt and run the following:
+If you have not installed it previously by running  
+```pip install -r requirements.txt```  
+and you have all other requirements satisfied, you can install it separately by opening up your terminal or command prompt and running the following:  
 ```pip install openpyxl```
