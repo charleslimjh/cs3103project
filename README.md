@@ -14,3 +14,9 @@ Visit or edit `keywords.txt`
 --- 
 ### To view database
 Open `database.db` using a SQLite DB reader
+
+--- 
+### Required modules that are not imported
+Openpyxl is required for pandas to write an excel file.
+To install, open up your terminal or command prompt and run the following:
+```pip install openpyxl```
