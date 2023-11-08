@@ -34,7 +34,7 @@ def main():
     with Manager() as manager:
         database_lock = manager.Lock()
         
-        # Initialise the paralised processes to crawl websites
+        # Initialise the parallelised processes to crawl websites
         for _ in range(num_processes):
             process = Process(target=crawl_worker, args=(keywords, database_lock, limit_val))
             processes.append(process)
@@ -44,10 +44,10 @@ def main():
         for process in processes:
             process.join()
 
-    # Display final count of keywords and geolocation found
+    # Display final count of keywords found for the corresponding geolocations
     print(db.get_keywords())
 
-# Method for process to start crawlling
+# Method for process to start crawling
 def crawl_worker(keywords, database_lock, max_num_crawl):
     num_crawled = 0 # Count for number of URLs crawled by child processes
 
@@ -56,10 +56,10 @@ def crawl_worker(keywords, database_lock, max_num_crawl):
                         format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S'
                         )
 
-    # Initialise connection to database
+    # Initialise connection to database for each child process
     db.init_cursorcon()
 
-    # Checks for number of URLs crawld
+    # Checks for number of URLs crawled
     while num_crawled < max_num_crawl:
         # Mutex to prevent database race conditions
         with database_lock:
@@ -69,7 +69,7 @@ def crawl_worker(keywords, database_lock, max_num_crawl):
                 time.sleep(5)
                 continue
         
-        # Display number of URLs left per child processes
+        # Display number of URLs left per child process
         logging.info(f"Number of URLs left to crawl: {max_num_crawl - (num_crawled + 1)}")
 
         # Call to crawler method
@@ -89,7 +89,7 @@ def crawl_worker(keywords, database_lock, max_num_crawl):
                 for _ in range(keyword_count['count']):
                     db.insert_keyword(keyword_count['keyword'], geolocation_continent)
 
-        # Delay to prevent red-limiting by websites
+        # Delay to prevent rate-limiting by websites visited
         time.sleep(5)
 
         # Increment number of URls crawled
@@ -159,6 +159,7 @@ def init_log():
 
 
 def is_valid_url(url):
+    """Check if initial URLs are valid"""
     try:
         result = urlparse(url)
         return all([result.scheme, result.netloc])

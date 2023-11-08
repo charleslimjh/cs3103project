@@ -13,4 +13,4 @@ Visit or edit `keywords.txt`
 
 --- 
 ### To view database
-Open `database.db` using a SQLite db reader
+Open `database.db` using a SQLite DB reader

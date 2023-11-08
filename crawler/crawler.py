@@ -7,10 +7,12 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from fake_useragent import UserAgent
 
+# Initialise random user agent generator
 ua = UserAgent()
 
-# Retrieve the Base64 encoded website URL from Google News
+
 def retrive_google_news_url(url: str) -> str:
+    """Retrieve the Base64 encoded website URL from Google News"""
     url_prefix = re.compile(fr"^{re.escape('https://news.google.com/articles/')}(?P<encoded_url>[^?]+)")
     decoded_url_prefix = re.compile(rb'^\x08\x13".+?(?P<primary_url>http[^\xd2]+)\xd2\x01')
 
@@ -27,28 +29,31 @@ def retrive_google_news_url(url: str) -> str:
             primary_url = primary_url.decode()
             return primary_url
 
-headers = {
-    'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-    'accept-language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
-    'cache-control': 'no-cache',
-    'dnt': '1',
-    'pragma': 'no-cache',
-    'user-agent': ua.random,
-}
 
 def crawler(url, keywords):
+    """Crawler method, returns URL visited, server response time, IP address, geolocation and counts of keywords matched of URL visited"""
     urls_set = set()
     keywords_count = []
+
+    headers = {
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'accept-language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
+        'cache-control': 'no-cache',
+        'dnt': '1',
+        'pragma': 'no-cache',
+        'user-agent': ua.random, # Get random user agent for each request
+    }
 
     try:
         domain = urlparse(url).netloc
         ip_addr = socket.gethostbyname(domain)
 
         response = requests.get(url, headers=headers)
+        # Raise exception if response status code is not 200
         response.raise_for_status()
         response_time = response.elapsed.total_seconds()
 
-        # Filter URLs from reddit
+        # Filter URLs from Reddit
         if domain == 'old.reddit.com' and 'over18' in response.url:
             raise Exception(f"{url} is now filtered")
 
@@ -85,6 +90,7 @@ def crawler(url, keywords):
 
             # Obtain geolocation of server from API
             geolocation_response = requests.get(f'http://ip-api.com/json/{ip_addr}?fields=2113542')
+            # Raise exception if response status code is not 200
             geolocation_response.raise_for_status()
 
             for keyword in keywords:
@@ -96,6 +102,8 @@ def crawler(url, keywords):
                 geolocation_continent = geolocation_response_json['continentCode']
                 # To store the web server's geolocation by country
                 geolocation_country = geolocation_response_json['countryCode']
+
+                logging.info(f"Succesfully fetched {url}: Response time: {response_time}s | IP Address: {ip_addr} | Geolocation: {geolocation_country}")
 
                 return url, response_time, ip_addr, geolocation_continent, geolocation_country, urls_set, keywords_count
     except requests.exceptions.HTTPError as e:
