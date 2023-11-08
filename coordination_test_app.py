@@ -1,3 +1,5 @@
+import time
+import random
 from crawler import db
 from multiprocessing import Process, Manager
 
@@ -16,6 +18,9 @@ def db_read_write_test(database_lock, max_num_crawled):
             link = db.get_link()
             if link == "" or link is None:
                 continue
+
+        # Simulate time spend to crawl a website
+        time.sleep(random.randint(1, 3))
 
         # Mutex to prevent database race conditions
         with database_lock:

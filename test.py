@@ -5,7 +5,7 @@ import random
 class CoordinationTest(unittest.TestCase):
     # Test coordinated access to the DB by different processes
     def test_db_coordination(self):
-        num_links = random.randint(1, 250) * 10
+        num_links = random.randint(1, 10) * 10
         result = coordination_test_app.run(num_links)
         self.assertEqual(result, num_links, f"Coordination access test failed | Expected: {num_links} Actual: {result}")  # Assert that the total number of URLs accessed by different processes is equal to 100
 
