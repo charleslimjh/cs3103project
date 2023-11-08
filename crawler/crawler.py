@@ -51,6 +51,7 @@ def crawler(url, keywords):
         response = requests.get(url, headers=headers)
         # Raise exception if response status code is not 200
         response.raise_for_status()
+        # Server response time in seconds
         response_time = response.elapsed.total_seconds()
 
         # Filter URLs from Reddit
