@@ -7,16 +7,16 @@ from urllib.parse import urlparse
 
 import db
 from crawler import crawler
+from multiprocessing import Process, Manager
+import multiprocessing
 
 # global vars
-limit = 30
 seed_urls = set()
 keywords = set()
 
-
 def main():
     """Main driver of program, handles initiation of all helpers and running of crawlers"""
-    global limit
+    global limit_val
     init_log()
     parse_args()
 
@@ -26,26 +26,63 @@ def main():
     # Add initial urls
     for url in seed_urls:
         db.insert_link(url)
-    
-    while True:
-        link = db.get_link()
-        logging.info(f"Number of url left to crawl: {limit}")
-        if link is None or limit == 0:
-            break
-        limit -= 1
+
+    processes = []
+
+    with Manager() as manager:
+        database_lock = manager.Lock()
+        
+        for _ in range(num_processes):
+            process = Process(target=crawl_worker, args=(keywords, database_lock, limit_val))
+            processes.append(process)
+            process.start()
+
+        # Wait for all processes to finish
+        for process in processes:
+            process.join()
+
+    print(db.get_keywords())
+
+
+def crawl_worker(keywords, database_lock, max_num_crawl):
+    num_crawled = 0
+
+
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S'
+                        )
+
+    db.init_cursorcon()
+
+    while num_crawled < max_num_crawl:
+        with database_lock:
+            link = db.get_link()
+            if link is None:
+                continue
+        
+        logging.info(f"Number of URLs left to crawl: {max_num_crawl - (num_crawled + 1)}")
+
         url, response_time, ip_addr, geolocation_continent, geolocation_country, urls_set, keywords_count = crawler(link, keywords)
-        for _ in range(len(urls_set)):
-            # Add new links found in the current page to the database
-            db.insert_link(urls_set.pop())
-        # Update current link as visited
-        db.update_link(url, response_time, ip_addr, geolocation_country)
-        # Insert predefined keywords found into database
-        for keyword_count in keywords_count:
-            for _ in range(keyword_count['count']):
-                db.insert_keyword(keyword_count['keyword'], geolocation_continent)
-        #db.print_db(cur)
-        print(db.get_keywords())
-        time.sleep(1)
+
+        with database_lock:
+            # Acquire the lock to ensure exclusive access to the database
+            for _ in range(len(urls_set)):
+                db.insert_link(urls_set.pop())
+
+            db.update_link(url, response_time, ip_addr, geolocation_country)
+
+            for keyword_count in keywords_count:
+                for _ in range(keyword_count['count']):
+                    db.insert_keyword(keyword_count['keyword'], geolocation_continent)
+
+            # Release the lock to allow other processes to access the database
+            # Lock will be automatically released when leaving the "with" block
+
+        # db.print_db(cur)
+        #print(db.get_keywords())
+        time.sleep(5)
+
+        num_crawled += 1
 
 
 def parse_args() -> []:
@@ -57,12 +94,16 @@ def parse_args() -> []:
     parser.add_argument("keyword_file", help="Path of file containing keywords to search websites for")
     parser.add_argument("-l", help="Number of urls to be found by crawler (not including seed url)", required=False,
                         default=30)
+    parser.add_argument("-n", help ="Number of processes for crawling", required=False, default=4)
     args = parser.parse_args()
     logging.info(f"program started with arguments provided: {args}")
     seed_file = os.path.abspath(args.url_file)
     keyword_file = os.path.abspath(args.keyword_file)
-    global limit
-    limit = int(args.l)
+    global limit_val
+    limit_val = int(args.l)
+    global num_processes
+    num_processes = int(args.n)
+
     try:
         f = open(seed_file, "r")
         for line in f:
