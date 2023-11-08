@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 import db
 from crawler import crawler
+import converter
 from multiprocessing import Process, Manager
 
 # global vars
@@ -45,7 +46,9 @@ def main():
             process.join()
 
     # Display final count of keywords found for the corresponding geolocations
-    print(db.get_keywords())
+    result = db.get_keywords()
+    logging.info(f"Count per keyword per location: {result}")
+    converter.convert(result)
 
 # Method for process to start crawling
 def crawl_worker(keywords, database_lock, max_num_crawl):
