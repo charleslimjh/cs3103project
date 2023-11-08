@@ -8,7 +8,6 @@ from urllib.parse import urlparse
 import db
 from crawler import crawler
 from multiprocessing import Process, Manager
-import multiprocessing
 
 # global vars
 seed_urls = set()
@@ -16,22 +15,26 @@ keywords = set()
 
 def main():
     """Main driver of program, handles initiation of all helpers and running of crawlers"""
-    global limit_val
+    global limit_val # This is the maximum number of sites visited per process
     init_log()
     parse_args()
 
-    db.init_cursorcon()
+    # Initialise connection to database
+    db.init_cursorcon() 
     db.init_db()
 
     # Add initial urls
     for url in seed_urls:
         db.insert_link(url)
 
+    # Array to keep track of processes
     processes = []
 
+    # Manager allows for mutex needed for database access control
     with Manager() as manager:
         database_lock = manager.Lock()
         
+        # Initialise the paralised processes to crawl websites
         for _ in range(num_processes):
             process = Process(target=crawl_worker, args=(keywords, database_lock, limit_val))
             processes.append(process)
@@ -41,47 +44,54 @@ def main():
         for process in processes:
             process.join()
 
+    # Display final count of keywords and geolocation found
     print(db.get_keywords())
 
-
+# Method for process to start crawlling
 def crawl_worker(keywords, database_lock, max_num_crawl):
-    num_crawled = 0
+    num_crawled = 0 # Count for number of URLs crawled by child processes
 
-
+    # Initialise logger for child processes
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S'
                         )
 
+    # Initialise connection to database
     db.init_cursorcon()
 
+    # Checks for number of URLs crawld
     while num_crawled < max_num_crawl:
+        # Mutex to prevent database race conditions
         with database_lock:
+            # Receive a unvisited link form the database
             link = db.get_link()
             if link is None:
                 continue
         
+        # Display number of URLs left per child processes
         logging.info(f"Number of URLs left to crawl: {max_num_crawl - (num_crawled + 1)}")
 
+        # Call to crawler method
         url, response_time, ip_addr, geolocation_continent, geolocation_country, urls_set, keywords_count = crawler(link, keywords)
 
+        # Mutex to prevent database race conditions
         with database_lock:
-            # Acquire the lock to ensure exclusive access to the database
+            # Insert links scrapped from URL
             for _ in range(len(urls_set)):
                 db.insert_link(urls_set.pop())
 
+            # Update URL information
             db.update_link(url, response_time, ip_addr, geolocation_country)
 
+            # Insert keywords found in URL 
             for keyword_count in keywords_count:
                 for _ in range(keyword_count['count']):
                     db.insert_keyword(keyword_count['keyword'], geolocation_continent)
 
-            # Release the lock to allow other processes to access the database
-            # Lock will be automatically released when leaving the "with" block
-
-        # db.print_db(cur)
-        #print(db.get_keywords())
+        # Delay to prevent red-limiting by websites
         time.sleep(5)
 
+        # Increment number of URls crawled
         num_crawled += 1
 
 
@@ -92,15 +102,19 @@ def parse_args() -> []:
                                                  "matching of multiple websites")
     parser.add_argument("url_file", help="Path of file containing seed url")
     parser.add_argument("keyword_file", help="Path of file containing keywords to search websites for")
-    parser.add_argument("-l", help="Number of urls to be found by crawler (not including seed url)", required=False,
+    parser.add_argument("-l", help="Number of urls to be found by each crawler process", required=False,
                         default=30)
     parser.add_argument("-n", help ="Number of processes for crawling", required=False, default=4)
+
     args = parser.parse_args()
     logging.info(f"program started with arguments provided: {args}")
+
     seed_file = os.path.abspath(args.url_file)
     keyword_file = os.path.abspath(args.keyword_file)
+
     global limit_val
     limit_val = int(args.l)
+    
     global num_processes
     num_processes = int(args.n)
 
