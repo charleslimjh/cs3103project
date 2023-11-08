@@ -1,0 +1,36 @@
+Archery
+Athletics
+Badminton
+Baseball
+Basketball
+Beach Volleyball
+Boxing
+Canoein
+Cycling
+Diving
+Equestrian
+Fencing
+Field Hockey
+Football
+Golf
+Gymnastics
+Handball
+Judo
+Karate
+Modern Pentathlon
+Rowing
+Rugby Sevens
+Sailing
+Shooting
+Skateboarding
+Surfing
+Swimming
+Synchronized Swimming
+Table Tennis
+Taekwondo
+Tennis
+Trampoline Gymnastics
+Triathlon
+Volleyball
+Weightlifting
+Wrestling
