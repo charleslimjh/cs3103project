@@ -1,36 +1,63 @@
-Archery
+Acrobatic Gymnastics
+Alpine Skiing
+Artistic Gymnastics
+Artistic Swimming
 Athletics
 Badminton
-Baseball
+Baseball Softball
 Basketball
+Beach Handball
 Beach Volleyball
+Bobsleigh
 Boxing
-Canoein
+Breaking
+Canoeing
+Climbing
+Cricket
+Skiing
+Curling
 Cycling
 Diving
 Equestrian
 Fencing
-Field Hockey
+Figure Skating
+Flag Football
 Football
+Freestyle Skiing
+Futsal
 Golf
-Gymnastics
 Handball
+Hockey
+Ice Hockey
 Judo
 Karate
+Lacrosse
+Luge
+Marathon Swimming
 Modern Pentathlon
+Nordic Combined
+Rhythmic Gymnastics
+Roller Speed Skating
 Rowing
 Rugby Sevens
 Sailing
 Shooting
+Short Track Speed Skating
 Skateboarding
+Skeleton
+Ski Jumping
+Ski Mountaineering
+Snowboard
+Speed Skating
+Squash
 Surfing
 Swimming
-Synchronized Swimming
 Table Tennis
 Taekwondo
 Tennis
-Trampoline Gymnastics
+Trampoline
 Triathlon
 Volleyball
+Water Polo
 Weightlifting
 Wrestling
