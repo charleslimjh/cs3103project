@@ -65,7 +65,8 @@ def crawl_worker(keywords, database_lock, max_num_crawl):
         with database_lock:
             # Receive a unvisited link form the database
             link = db.get_link()
-            if link is None:
+            if link == "" or link is None:
+                time.sleep(5)
                 continue
         
         # Display number of URLs left per child processes
@@ -114,7 +115,7 @@ def parse_args() -> []:
 
     global limit_val
     limit_val = int(args.l)
-    
+
     global num_processes
     num_processes = int(args.n)
 
